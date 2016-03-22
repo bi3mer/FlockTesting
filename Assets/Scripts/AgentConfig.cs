@@ -4,16 +4,25 @@ using System.Collections;
 public class AgentConfig : MonoBehaviour 
 {
     // TODO: add line breaks in inspector and create better names
-    public float Rc;
-    public float Rs;
-    public float Ra;
+    public float CohesionRadius;
+    public float SeparationRadius;
+    public float AllignmentRadius;
+    public float WanderRadius;
+    public float AvoidRadius;
 
-    public float Kc;
-    public float Ks;
-    public float Ka;
+    public float CohesionWeight;
+    public float SeparationWeight;
+    public float AllignmentWeight;
+    public float WanderWeight;
+    public float AvoidWeight;
 
     public float MaxAcceleration;
     public float MaxVelocity;
+
+    public float MaxFieldOfViewAngle = 180;
+    public float Jitter;
+    public float WanderDistance;
+
 
 
     // Singleton
