@@ -4,11 +4,15 @@ using System.Collections.Generic;
 public class Agent : MonoBehaviour 
 {
     public Vector2 velocity;
+
+
+	private Vector3 WanderTarget;
     
     // Rigid body
     private Rigidbody2D rb;
     
     private Vector2 acceleration;
+	private LayerMask predatorLayer;
 
     /// <summary>
     /// Initialize with basic info
@@ -17,6 +21,9 @@ public class Agent : MonoBehaviour
     {
         // Start with random velocity
         this.velocity = new Vector2(Random.Range(-2, 2), Random.Range(-2, 2));
+
+		// Get predator layer
+		this.predatorLayer = LayerMask.NameToLayer("Predator");
 	}
 	
     /// <summary>
@@ -53,17 +60,19 @@ public class Agent : MonoBehaviour
     /// <returns>Center Point</returns>
     public Vector2 Cohesion()
     {
-        int agentCount = 0;
         // Cohesion behaavior
         Vector3 result = new Vector3();
         
         // Get all neighbors
-        List<Agent> neighbors = World.Instance.GetNeighbors(this, AgentConfig.Instance.CohesionRadius);
+		Collider2D[] neighbors = Physics2D.OverlapCircleAll(this.transform.position, AgentConfig.Instance.CohesionRadius);
 
         // check if neighbors is full or not
-        if (neighbors.Count > 0)
+        if (neighbors.Length > 0)
         {
-            for (int i = 0; i < neighbors.Count; ++i)
+			// Num agents
+			int agentCount = 0;
+
+            for (int i = 0; i < neighbors.Length; ++i)
             {
                 if (this.InFieldOfView(neighbors[i].transform.position))
                 {
@@ -99,24 +108,21 @@ public class Agent : MonoBehaviour
         Vector2 result = new Vector3();
 
         // Get all neighbors
-        List<Agent> neighbors = World.Instance.GetNeighbors(this, AgentConfig.Instance.SeparationRadius);
+		Collider2D[] neighbors = Physics2D.OverlapCircleAll(this.transform.position, AgentConfig.Instance.SeparationRadius);
 
         // check if neighbors is full or not
-        if (neighbors.Count > 0)
+        for (int i = 0; i < neighbors.Length; ++i)
         {
-            for (int i = 0; i < neighbors.Count; ++i)
+            Vector3 towardsMe = this.transform.position - neighbors[i].transform.position;
+
+            // Contribution depends on distance
+            if (towardsMe.magnitude > 0 && this.InFieldOfView(neighbors[i].transform.position))
             {
-                Vector3 towardsMe = this.transform.position - neighbors[i].transform.position;
-
-                // Contribution depends on distance
-                if (towardsMe.magnitude > 0 && this.InFieldOfView(neighbors[i].transform.position))
-                {
-                    result = towardsMe.normalized / towardsMe.magnitude;
-                }
-
-                // Normalize
-                result.Normalize();
+                result = towardsMe.normalized / towardsMe.magnitude;
             }
+
+            // Normalize
+            result.Normalize();
         }
 
         // return result
@@ -132,16 +138,16 @@ public class Agent : MonoBehaviour
         Vector2 result = new Vector2();
 
         // Get all neighbors
-        List<Agent> neighbors = World.Instance.GetNeighbors(this, AgentConfig.Instance.AllignmentRadius);
+		Collider2D[] neighbors = Physics2D.OverlapCircleAll(this.transform.position, AgentConfig.Instance.SeparationRadius, this.gameObject.layer);
 
         // check if neighbors is full or not
-        if (neighbors.Count > 0)
+        if (neighbors.Length > 0)
         {
-            for (int i = 0; i < neighbors.Count; ++i)
+            for (int i = 0; i < neighbors.Length; ++i)
             {
                 if (this.InFieldOfView(neighbors[i].transform.position))
                 {
-                    result += neighbors[i].velocity;
+                    result += neighbors[i].gameObject.GetComponent<Agent>().velocity;
                 }
             }
 
@@ -152,6 +158,41 @@ public class Agent : MonoBehaviour
         // return result
         return result;
     }
+
+	/// <summary>
+	/// Flee from all enemies
+	/// </summary>
+	public Vector2 AvoidEnemies()
+	{
+		Vector2 result = new Vector3();
+		
+		Collider2D[] enemies = Physics2D.OverlapCircleAll(this.transform.position, AgentConfig.Instance.AvoidRadius, this.predatorLayer);
+
+		for (int i = 0; i < enemies.Length; ++i)
+		{
+			result += this.Flee(enemies[i].transform.position);
+		}
+		
+		return result;
+	}
+
+	/// <summary>
+	/// Smooth out movement
+	/// </summary>
+	/// <returns></returns>
+	public Vector2 Wander()
+	{
+		float jitter = AgentConfig.Instance.Jitter * Time.deltaTime;
+		
+		// 
+		this.WanderTarget += new Vector3(this.randomBinomial() * jitter, this.randomBinomial() * jitter, 0);
+		
+		this.WanderTarget.Normalize();
+		this.WanderTarget *= AgentConfig.Instance.WanderRadius;
+		Vector3 targetInLocalSpace = this.WanderTarget + new Vector3(0, 0, AgentConfig.Instance.WanderDistance);
+		Vector3 targetInWorldSpace = this.transform.TransformPoint(targetInLocalSpace);
+		return (targetInWorldSpace - this.transform.position).normalized;
+	}
 
     /// <summary>
     /// Use Allignment, Cohesion, and Separation to define behavior with diferent proportions based on importance
@@ -174,26 +215,7 @@ public class Agent : MonoBehaviour
     public bool InFieldOfView(Vector3 agent)
     {
         return Vector2.Angle(this.velocity, agent - this.transform.position) <= AgentConfig.Instance.MaxFieldOfViewAngle;
-    }
-
-    public Vector3 WanderTarget;
-    /// <summary>
-    /// Smooth out movement
-    /// </summary>
-    /// <returns></returns>
-    public Vector2 Wander()
-    {
-        float jitter = AgentConfig.Instance.Jitter * Time.deltaTime;
-
-        // 
-        this.WanderTarget += new Vector3(this.randomBinomial() * jitter, this.randomBinomial() * jitter, 0);
-
-        this.WanderTarget.Normalize();
-        this.WanderTarget *= AgentConfig.Instance.WanderRadius;
-        Vector3 targetInLocalSpace = this.WanderTarget + new Vector3(0, 0, AgentConfig.Instance.WanderDistance);
-        Vector3 targetInWorldSpace = this.transform.TransformPoint(targetInLocalSpace);
-        return (targetInWorldSpace - this.transform.position).normalized;
-    }
+    } 
 
     private float randomBinomial()
     {
@@ -210,34 +232,4 @@ public class Agent : MonoBehaviour
         Vector2 desiredVel = (this.transform.position - targ).normalized * AgentConfig.Instance.MaxVelocity;
         return desiredVel - this.velocity;
     }
-
-    /// <summary>
-    /// Flee from all enemies
-    /// </summary>
-    public Vector2 AvoidEnemies()
-    {
-        Vector2 result = new Vector3();
-
-        List<Predator> enemies = World.Instance.GetPredators(this.transform.position, AgentConfig.Instance.AvoidRadius);
-       
-
-        if (enemies.Count > 0)
-        {
-            for (int i = 0; i < enemies.Count; ++i)
-            {
-                result += this.Flee(enemies[i].transform.position);
-            }
-        }
-
-        return result;
-    }
 }
-//
-// TODO take loop and add it in here and use combine function with required information
-//
-//
-//
-//
-//
-//
-//

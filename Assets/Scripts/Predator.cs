@@ -6,9 +6,7 @@ public class Predator : Agent
     void Start()
     {
         // Start with random velocity
-        this.velocity = new Vector2(Random.Range(-2, 2), Random.Range(-2, 2));
-
-        World.Instance.Predators.Add(this);
+        this.velocity = new Vector2(Random.Range(-5, 5), Random.Range(-5, 5));
     }
 
     /// <summary>
@@ -20,4 +18,17 @@ public class Predator : Agent
         return AgentConfig.Instance.WanderWeight * base.Wander()
              + AgentConfig.Instance.CohesionWeight * base.Cohesion();
     }
+
+	// Eat bird
+	void OnCollisionEnter2D(Collision2D col) 
+	{
+		Debug.Log("Collisoin! " + col.gameObject.tag);
+		// Check tag
+		if(col.collider.transform.CompareTag("Agent"))
+		{
+			Debug.Log("Chomp!");
+			// Eat prey
+			Destroy(col.gameObject);
+		}
+	}
 }
