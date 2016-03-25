@@ -7,6 +7,9 @@ public class Predator : Agent
     {
         // Start with random velocity
         this.velocity = new Vector2(Random.Range(-5, 5), Random.Range(-5, 5));
+
+		// Get configuration
+		this.config = this.GetComponent<AgentConfig>();
     }
 
     /// <summary>
@@ -15,20 +18,7 @@ public class Predator : Agent
     /// <returns>Vector with correct behavior</returns>
     public override Vector2 Combine()
     {
-        return AgentConfig.Instance.WanderWeight * base.Wander()
-             + AgentConfig.Instance.CohesionWeight * base.Cohesion();
+        return base.config.WanderWeight * base.Wander()
+             + base.config.CohesionWeight * base.Cohesion();
     }
-
-	// Eat bird
-	void OnCollisionEnter2D(Collision2D col) 
-	{
-		Debug.Log("Collisoin! " + col.gameObject.tag);
-		// Check tag
-		if(col.collider.transform.CompareTag("Agent"))
-		{
-			Debug.Log("Chomp!");
-			// Eat prey
-			Destroy(col.gameObject);
-		}
-	}
 }
