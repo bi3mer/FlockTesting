@@ -3,6 +3,7 @@ using System.Collections;
 
 public class CreateBabyAgent : MonoBehaviour
 {
+	[Tooltip("Common Agent that can be Eaten")]
 	public GameObject Agent;
 
 	// Singleton
@@ -20,14 +21,14 @@ public class CreateBabyAgent : MonoBehaviour
 	}
 
 	/// <summary>
-	/// Creates the baby agent using the multipliers as a heuristic for how well it has performed, i.e. lifetime
+	/// Creates the baby agent using the frame lifes as a heuristic for how well it has performed, i.e. lifetime
 	/// </summary>
 	/// <param name="birthPosition">Birth position.</param>
 	/// <param name="configOne">Config one.</param>
-	/// <param name="multiplierOne">Multiplier one.</param>
+	/// <param name="frameLifeOne">Frame life one.</param>
 	/// <param name="configTwo">Config two.</param>
-	/// <param name="multiplerTwo">Multipler two.</param>
-	public void CreateChild(Vector2 birthPosition, AgentConfig configOne, int multiplierOne, AgentConfig configTwo, int multiplerTwo)
+	/// <param name="frameLifeTwo">Frame life two.</param>
+	public void CreateChild(Vector2 birthPosition, AgentConfig configOne, int frameLifeOne, AgentConfig configTwo, int frameLifeTwo)
 	{
 		// Add to agents
 		World.Instance.IncrementAgentCount();

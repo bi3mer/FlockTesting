@@ -7,6 +7,7 @@ public class MateWithAgent : MonoBehaviour
 	private bool canMate = false;
 	private int secondsInAMinute = 60;
 	private AgentConfig config;
+	private int startFrameCount;
 
 	/// <summary>
 	/// Start this instance with a thread running in background
@@ -18,15 +19,18 @@ public class MateWithAgent : MonoBehaviour
 
 		// Get config
 		this.config = this.GetComponent<AgentConfig>();
+
+		// Get current frameCount
+		this.startFrameCount = Time.frameCount;
 	}
 
 	/// <summary>
 	/// Gets the multipler.
 	/// </summary>
 	/// <returns>The multipler.</returns>
-	public int GetMultipler()
+	public int GetFrameLife()
 	{
-		return this.matingMultiplier;
+		return Time.frameCount - this.startFrameCount;
 	}
 
 	/// <summary>
@@ -62,9 +66,9 @@ public class MateWithAgent : MonoBehaviour
 				// Create child at position with configs
 				CreateBabyAgent.Instance.CreateChild(this.transform.position, 
 				                                     this.config,
-				                                     this.matingMultiplier,
+				                                     this.GetFrameLife(),
 				                                     col.collider.GetComponent<AgentConfig>(),
-				                                     col.collider.GetComponent<MateWithAgent>().GetMultipler());
+				                                     col.collider.GetComponent<MateWithAgent>().GetFrameLife());
 			}
 		}
 	}
