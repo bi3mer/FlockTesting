@@ -3,9 +3,10 @@ using System.Collections;
 
 public class MateWithAgent : MonoBehaviour 
 {
+	public int secondsToMate = 60;
+
 	private int matingMultiplier = 1;
 	private bool canMate = false;
-	private int secondsInAMinute = 60;
 	private AgentConfig config;
 	private int startFrameCount;
 
@@ -41,7 +42,7 @@ public class MateWithAgent : MonoBehaviour
 	{
 		while(true)
 		{
-			yield return new WaitForSeconds(this.matingMultiplier * this.secondsInAMinute);
+			yield return new WaitForSeconds(this.matingMultiplier * this.secondsToMate);
 
 			// Incrmenet and allow agent to mate
 			++this.matingMultiplier;
@@ -78,9 +79,6 @@ public class MateWithAgent : MonoBehaviour
 	/// </summary>
 	void OnDestroy()
 	{
-		// Decrement agent count
-		World.Instance.DecrementAgentCount();
-
 		// Stop coroutine
 		StopCoroutine(this.AllowToMate());
 	}

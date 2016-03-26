@@ -12,6 +12,9 @@ public class EatPrey : MonoBehaviour
 		// Check tag
 		if(col.collider.transform.CompareTag("Agent"))
 		{
+			// decrement
+			World.Instance.DecrementAgentCount();
+
 			// Eat prey
 			Destroy(col.gameObject);
 		}

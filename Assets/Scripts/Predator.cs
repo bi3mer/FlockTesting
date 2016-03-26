@@ -10,6 +10,9 @@ public class Predator : Agent
 
 		// Get configuration
 		this.config = this.GetComponent<AgentConfig>();
+
+		// set layers
+		this.setLayers();
     }
 
     /// <summary>
@@ -18,7 +21,8 @@ public class Predator : Agent
     /// <returns>Vector with correct behavior</returns>
     public override Vector2 Combine()
     {
-        return base.config.WanderWeight * base.Wander()
-             + base.config.CohesionWeight * base.Cohesion();
+        return base.config.CohesionWeight * base.Cohesion()
+//			 + base.config.WanderWeight * base.Wander()
+			 + base.config.SeparationWeight * base.Separation();
     }
 }

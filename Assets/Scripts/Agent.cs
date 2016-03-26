@@ -12,8 +12,18 @@ public class Agent : MonoBehaviour
     private Rigidbody2D rb;
     
     private Vector2 acceleration;
-	private LayerMask predatorLayer;
+	protected LayerMask predatorLayer;
+	protected LayerMask agentLayer;
 	protected AgentConfig config;
+
+	protected virtual void setLayers()
+	{
+		// Get predator layer
+		this.predatorLayer = LayerMask.GetMask(new string[] {"Predator"});
+		
+		// Get agent layer
+		this.agentLayer = LayerMask.GetMask(new string[] {"Agent"});
+	}
 
     /// <summary>
     /// Initialize with basic info
@@ -23,8 +33,8 @@ public class Agent : MonoBehaviour
         // Start with random velocity
         this.velocity = new Vector2(Random.Range(-2, 2), Random.Range(-2, 2));
 
-		// Get predator layer
-		this.predatorLayer = LayerMask.GetMask(new string[] {"Predator"});
+		// set layers
+		this.setLayers();
 
 		// Get configuration
 		this.config = this.GetComponent<AgentConfig>();
@@ -68,7 +78,7 @@ public class Agent : MonoBehaviour
         Vector3 result = new Vector3();
         
         // Get all neighbors
-		Collider2D[] neighbors = Physics2D.OverlapCircleAll(this.transform.position, this.config.CohesionRadius);
+		Collider2D[] neighbors = Physics2D.OverlapCircleAll(this.transform.position, this.config.CohesionRadius, this.agentLayer);
 
         // check if neighbors is full or not
         if (neighbors.Length > 0)
@@ -109,7 +119,7 @@ public class Agent : MonoBehaviour
         Vector2 result = new Vector3();
 
         // Get all neighbors
-		Collider2D[] neighbors = Physics2D.OverlapCircleAll(this.transform.position, this.config.SeparationRadius);
+		Collider2D[] neighbors = Physics2D.OverlapCircleAll(this.transform.position, this.config.SeparationRadius, this.gameObject.layer);
 
         // check if neighbors is full or not
         for (int i = 0; i < neighbors.Length; ++i)
@@ -187,7 +197,7 @@ public class Agent : MonoBehaviour
 		
 		this.WanderTarget.Normalize();
 		this.WanderTarget *= this.config.WanderRadius;
-		Vector3 targetInLocalSpace = this.WanderTarget + new Vector3(0, 0, this.config.WanderDistance);
+		Vector3 targetInLocalSpace = this.WanderTarget + new Vector3(0, 0, this.config.WanderDistanceRadius);
 		Vector3 targetInWorldSpace = this.transform.TransformPoint(targetInLocalSpace);
 		return (targetInWorldSpace - this.transform.position).normalized;
 	}
@@ -215,6 +225,10 @@ public class Agent : MonoBehaviour
         return Vector2.Angle(this.velocity, agent - this.transform.position) <= this.config.MaxFieldOfViewAngle;
     } 
 
+	/// <summary>
+	/// Randoms binomial with higher likelihood of 0
+	/// </summary>
+	/// <returns>The binomial.</returns>
     private float randomBinomial()
     {
         return Random.Range(0f, 1f) - Random.Range(0f, 1f);

@@ -4,12 +4,13 @@ using System.Collections.Generic;
 public class World : MonoBehaviour
 {
     public GameObject AgentPrefab;
-    public int NumberOfAgents;
+    public int StartNumberOfAgents;
 
     public Vector2 ScreenBounds;
     public float SpawnRadius;
 
-	private int AgentCount = 0;
+	[Header ("Number Of Agents Running")]
+	public int AgentCount = 0;
 	
 
     private static World instance = null;
@@ -27,7 +28,8 @@ public class World : MonoBehaviour
 
     void Start()
     {
-        this.Spawn(AgentPrefab, this.NumberOfAgents);
+		this.AgentCount = 0;
+		this.Spawn(AgentPrefab, this.StartNumberOfAgents);
     }
 
     /// <summary>

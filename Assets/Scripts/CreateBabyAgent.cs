@@ -1,10 +1,14 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System;
 
 public class CreateBabyAgent : MonoBehaviour
 {
 	[Tooltip("Common Agent that can be Eaten")]
 	public GameObject Agent;
+
+	[Tooltip("Value between 0-100")]
+	public float MutationPercentage = 2;
 
 	// Singleton
 	private static CreateBabyAgent instance = null;
@@ -39,6 +43,50 @@ public class CreateBabyAgent : MonoBehaviour
 		// Get config of agent
 		AgentConfig newConfig = agent.GetComponent<AgentConfig>();
 
-		// TODO: Gentic stuff here with the config files
+		// Get likelihood of component one versus component two
+		int componentLikeliHood = frameLifeOne / (frameLifeOne + frameLifeTwo);
+
+		// Get fields of class
+		System.Reflection.FieldInfo[] fields = newConfig.GetType().GetFields();
+
+		// loop through fields
+		for(int i = 0; i < fields.Length; ++i)
+		{
+			// Check field
+			if(!fields[i].Name.Equals("MaxAcceleration") && !fields[i].Name.Equals("MaxVelocity"))
+			{
+				// create new value
+				float newVal;
+
+				// Check if gene will mutate
+				if(UnityEngine.Random.Range(0, 100) < this.MutationPercentage)
+				{
+					// Check if a radius or weight
+					if(fields[i].Name.Contains("Radius"))
+					{
+						newVal = UnityEngine.Random.Range(0, AgentConfig.MaxRadius);
+					}
+					else
+					{
+						newVal = UnityEngine.Random.Range(0, AgentConfig.MaxWeight);
+					}
+				}
+				else
+				{
+					// pick new val based on percentage from other
+					if(UnityEngine.Random.Range(0,100) / 100 > componentLikeliHood)
+					{
+						newVal = (float) fields[i].GetValue(configTwo);
+					}
+					else
+					{
+						newVal = (float) fields[i].GetValue(configOne);
+					}
+				}
+
+				// set the value
+				fields[i].SetValue(newConfig, newVal);
+			}
+		}
 	}
 }
