@@ -2,4 +2,4 @@
 Playing around with flocking in Unity
 
 
-https://www.cs.drexel.edu/~cfb43/flocking/
+[https://bi3mer.github.io/flocking/index.html](https://bi3mer.github.io/flocking/index.html)
